@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>주문 내역</title>
+    <style>
+        .delete-btn {
+            margin-left: 10px;
+            color: white;
+            background-color: #f44336;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+<h1>주문 내역</h1>
+<div id="orderListContainer">
+    <p>주문 내역을 불러오는 중...</p>
+</div>
+<hr>
+<a href="/index.html">홈으로</a>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const orderListContainer = document.getElementById('orderListContainer');
+
+        async function fetchOrders() {
+            try {
+                const response = await fetch('/주문내역');
+                if (!response.ok) throw new Error('네트워크 응답이 올바르지 않습니다.');
+                const orderIds = await response.json();
+
+                orderListContainer.innerHTML = '';
+
+                if (!Array.isArray(orderIds) || orderIds.length === 0) {
+                    orderListContainer.innerHTML = '<p>주문 내역이 없습니다.</p>';
+                    return;
+                }
+
+                const ul = document.createElement('ul');
+
+                orderIds.forEach(row => {
+                    // 숫자 배열([1,2,3])도, 객체 배열([{id:1}, ...])도 지원
+                    const id = typeof row === 'object' && row !== null ? row.id : row;
+
+                    const li = document.createElement('li');
+                    // innerHTML 대신 textContent 사용 (안전하고 파싱 이슈 회피)
+                    li.textContent = `주문 ID: ${id} `;
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = '주문 삭제';
+                    deleteButton.className = 'delete-btn';
+                    deleteButton.addEventListener('click', () => deleteOrder(id));
+
+                    li.appendChild(deleteButton);
+                    ul.appendChild(li);
+                });
+
+                orderListContainer.appendChild(ul);
+            } catch (error) {
+                console.error('Error:', error);
+                orderListContainer.innerHTML = '<p>주문 내역을 불러오는 데 실패했습니다.</p>';
+            }
+        }
+
+        async function deleteOrder(orderId) {
+            if (!confirm(`정말로 주문 ID ${orderId}를 삭제하시겠습니까?`)) return;
+            try {
+                const response = await fetch(`/order/${orderId}`, { method: 'DELETE' });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`삭제 실패: ${response.status} ${errorText}`);
+                }
+                alert(`주문 ID ${orderId}가 성공적으로 삭제되었습니다.`);
+                fetchOrders();
+            } catch (error) {
+                console.error('Deletion Error:', error);
+                alert(`주문 삭제에 실패했습니다: ${error.message}`);
+            }
+        }
+
+        fetchOrders();
+    });
+</script>
+</body>
+</html>

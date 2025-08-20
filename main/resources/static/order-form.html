@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 주문</title>
+</head>
+<body>
+<h1>상품 주문</h1>
+<form id="orderForm">
+    <label>회원 ID:<input type="number" id="memberId" name="memberId" required /></label>
+    <br />
+    <h2>주문 상품 목록</h2>
+    <div id="orderLinesContainer">
+    </div>
+    <button type="button" id="addItemBtn">상품 추가</button>
+    <br />
+    <button type="submit">주문하기</button>
+</form>
+<hr>
+<a href="/index.html">홈으로</a>
+<script>
+    const orderForm = document.getElementById('orderForm');
+    const orderLinesContainer = document.getElementById('orderLinesContainer');
+    const addItemBtn = document.getElementById('addItemBtn');
+    const addOrderItemField = () => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'orderLine';
+        itemDiv.innerHTML = `
+                <label>상품 ID:<input type="number" name="itemId" required /></label>
+                <label>수량:<input type="number" name="count" required /></label>
+                <button type="button" class="removeItemBtn">삭제</button>
+                <br />
+            `;
+        orderLinesContainer.appendChild(itemDiv);
+        itemDiv.querySelector('.removeItemBtn').addEventListener('click', () => {
+            orderLinesContainer.removeChild(itemDiv);
+        });
+    };
+    addItemBtn.addEventListener('click', addOrderItemField);
+    addOrderItemField(); // 초기 필드 하나 추가
+    orderForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const memberId = document.getElementById('memberId').value;
+        const lines = [];
+        document.querySelectorAll('.orderLine').forEach(lineDiv => {
+            const itemId = lineDiv.querySelector('input[name="itemId"]').value;
+            const count = lineDiv.querySelector('input[name="count"]').value;
+            if (itemId && count) {
+                lines.push({ itemId: parseInt(itemId), count: parseInt(count) });
+            }
+        });
+        const orderData = { memberId: parseInt(memberId), lines };
+        try {
+            const response = await fetch('/주문', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData),
+            });
+            if (response.ok) {
+                const orderId = await response.json();
+                alert(`주문 성공! 주문 ID: ${orderId}`);
+            } else {
+                alert('주문 실패.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+</script>
+</body>
+</html>

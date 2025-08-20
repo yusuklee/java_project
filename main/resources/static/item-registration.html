@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 등록</title>
+</head>
+<body>
+<h1>상품 등록</h1>
+<form id="itemRegistrationForm">
+    <label>
+        상품 종류:
+        <select id="itemType" name="itemType">
+            <option value="movie">영화</option>
+            <option value="album">앨범</option>
+            <option value="book">책</option>
+        </select>
+    </label>
+    <br />
+    <label>
+        상품명:
+        <input type="text" id="name" name="name" />
+    </label>
+    <br />
+    <label>
+        가격:
+        <input type="number" id="price" name="price" />
+    </label>
+    <br />
+    <label>
+        재고수량:
+        <input type="number" id="stockQuantity" name="stockQuantity" />
+    </label>
+    <br />
+    <div id="specificFields"></div>
+    <br />
+    <button type="submit">등록하기</button>
+</form>
+<hr>
+<a href="/index.html">홈으로</a>
+
+<script>
+    const itemTypeSelect = document.getElementById('itemType');
+    const specificFieldsContainer = document.getElementById('specificFields');
+    const form = document.getElementById('itemRegistrationForm');
+
+    const renderSpecificFields = (itemType) => {
+        specificFieldsContainer.innerHTML = '';
+        let html = '';
+        if (itemType === 'movie') {
+            html = `
+                    <label>감독:<input type="text" id="director" name="director" /></label>
+                    <br />
+                    <label>배우:<input type="text" id="actor" name="actor" /></label>
+                `;
+        } else if (itemType === 'album') {
+            html = `
+                    <label>아티스트:<input type="text" id="artist" name="artist" /></label>
+                    <br />
+                    <label>기타:<input type="text" id="etc" name="etc" /></label>
+                `;
+        } else if (itemType === 'book') {
+            html = `
+                    <label>작가:<input type="text" id="author" name="author" /></label>
+                    <br />
+                    <label>ISBN:<input type="text" id="isbn" name="isbn" /></label>
+                `;
+        }
+        specificFieldsContainer.innerHTML = html;
+    };
+
+    // 초기 렌더링
+    renderSpecificFields(itemTypeSelect.value);
+
+    // 상품 종류 변경 시 필드 업데이트
+    itemTypeSelect.addEventListener('change', (e) => {
+        renderSpecificFields(e.target.value);
+    });
+
+    // 폼 제출
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const itemType = itemTypeSelect.value;
+        const name = document.getElementById('name').value;
+        const price = parseInt(document.getElementById('price').value);
+        const stockQuantity = parseInt(document.getElementById('stockQuantity').value);
+
+        let specificFields = {};
+        if (itemType === 'movie') {
+            specificFields = {
+                director: document.getElementById('director').value,
+                actor: document.getElementById('actor').value
+            };
+        } else if (itemType === 'album') {
+            specificFields = {
+                artist: document.getElementById('artist').value,
+                etc: document.getElementById('etc').value
+            };
+        } else if (itemType === 'book') {
+            specificFields = {
+                author: document.getElementById('author').value,
+                isbn: document.getElementById('isbn').value
+            };
+        }
+
+        const itemData = { name, price, stockQuantity, ...specificFields };
+        const endpointMap = {
+            movie: '/상품등록_영화',
+            album: '/상품등록_앨범',
+            book: '/상품등록_책',
+        };
+        const endpoint = endpointMap[itemType];
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(itemData),
+            });
+
+            if (response.ok) {
+                const id = await response.json();
+                alert(`${itemType} 상품 등록 성공! 상품 ID: ${id}`);
+            } else {
+                alert('상품 등록 실패.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+</script>
+</body>
+</html>

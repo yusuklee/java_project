@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        label { display: block; margin-bottom: 10px; }
+        input[type="text"] { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 15px; background-color: #007BFF; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h1>회원가입</h1>
+<form id="registrationForm">
+    <label>
+        이름:
+        <input type="text" id="name" name="name" />
+    </label>
+    <label>
+        도시:
+        <input type="text" id="city" name="city" />
+    </label>
+    <label>
+        거리:
+        <input type="text" id="street" name="street" />
+    </label>
+    <label>
+        우편번호:
+        <input type="text" id="zipcode" name="zipcode" />
+    </label>
+    <button type="submit">가입하기</button>
+</form>
+<hr>
+<a href="/index.html">홈으로</a>
+
+<script>
+    document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const city = document.getElementById('city').value;
+        const street = document.getElementById('street').value;
+        const zipcode = document.getElementById('zipcode').value;
+
+        const memberData = { name, city, street, zipcode };
+
+        try {
+            const response = await fetch('/회원가입', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(memberData),
+            });
+
+            if (response.ok) {
+                const id = await response.json();
+                alert(`회원가입 성공! 회원 ID: ${id}`);
+            } else {
+                alert('회원가입 실패.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    });
+</script>
+</body>
+</html>

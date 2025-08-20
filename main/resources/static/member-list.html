@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 목록</title>
+</head>
+<body>
+<h1>회원 목록</h1>
+<div id="memberListContainer">
+    <p>회원 목록을 불러오는 중...</p>
+</div>
+<hr>
+<a href="/index.html">홈으로</a>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const memberListContainer = document.getElementById('memberListContainer');
+
+        const fetchMembers = async () => {
+            try {
+                const response = await fetch('/회원목록');
+                if (!response.ok) {
+                    throw new Error('네트워크 응답이 올바르지 않습니다.');
+                }
+                const members = await response.json();
+
+                if (members.length === 0) {
+                    memberListContainer.innerHTML = '<p>등록된 회원이 없습니다.</p>';
+                    return;
+                }
+
+                const ul = document.createElement('ul');
+                members.forEach(member => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                            <strong>이름:</strong> ${member.name}, 
+                            <strong>도시:</strong> ${member.city}, 
+                            <strong>거리:</strong> ${member.street}, 
+                            <strong>우편번호:</strong> ${member.zipcode}
+                        `;
+                    ul.appendChild(li);
+                });
+                memberListContainer.innerHTML = ''; // 기존 "불러오는 중..." 메시지 삭제
+                memberListContainer.appendChild(ul);
+
+            } catch (error) {
+                console.error('Error:', error);
+                memberListContainer.innerHTML = '<p>회원 목록을 불러오는 데 실패했습니다.</p>';
+            }
+        };
+        fetchMembers();
+    });
+</script>
+</body>
+</html>
